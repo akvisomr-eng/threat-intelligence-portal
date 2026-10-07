@@ -17,7 +17,7 @@ function markdownToHtml(md){
   const flush=()=>{if(para.length){out.push("<p>"+terjemahkan(para.join(" "))+"</p>");para=[]}};
   for(const line of lines){
     const t=line.trim();
-    if(/^<table\\b/i.test(t)||htmlBlock){flush();out.push(line);if(/<table\\b/i.test(t))htmlBlock=true;if(/<\\/table>/i.test(t))htmlBlock=false;continue}
+    if(/^<table\b/i.test(t)||htmlBlock){flush();out.push(line);if(/<table\\b/i.test(t))htmlBlock=true;if(/<\\/table>/i.test(t))htmlBlock=false;continue}
     if(/^#{1,6}\\s/.test(t)){flush();const m=t.match(/^(#{1,6})\\s+(.*)$/);out.push("<h"+m[1].length+">"+m[2]+"</h"+m[1].length+">");continue}
     const lm=t.match(/^-\\s+(?:\\[([^\\]]+)\\]\\(([^)]+)\\)|(.+))$/);
     if(lm){if(!list){out.push("<ul>");list=true}out.push(lm[2]?'<li><a href="'+lm[2]+'" target="_blank" rel="noopener">'+lm[1]+"</a></li>":"<li>"+lm[3]+"</li>");continue}
@@ -36,10 +36,22 @@ function kirim(){const t=q.value.trim();if(!t)return;q.value="";tambah(t,"usr");
 s.oninput=e=>filter(e.target.value);document.getElementById("send").onclick=kirim;q.onkeydown=e=>{if(e.key==="Enter")kirim()};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(SR){const r=new SR();r.lang="id-ID";r.onstart=()=>{orb.classList.add("active");cs.textContent="AURA sedang mendengarkan..."};r.onend=()=>{orb.classList.remove("active");cs.textContent="Siap membantu"};r.onresult=e=>{q.value=e.results[0][0].transcript;kirim()};document.getElementById("mic").onclick=()=>{try{r.start()}catch(e){}}}else document.getElementById("mic").onclick=()=>alert("Fitur suara membutuhkan Chrome atau Edge terbaru.");
 document.getElementById("close").onclick=()=>{const chat=document.querySelector(".chat"),hide=chat.style.display==="none";chat.style.display=hide?"flex":"none";document.getElementById("close").textContent=hide?"−":"+";document.getElementById("close").setAttribute("aria-label",hide?"Tutup AURA":"Buka AURA")};
-(function(){
-  const local=window.threatIntel&&window.threatIntel.getDatabase?window.threatIntel.getDatabase():"";
+(async function(){
+  let local="";
+  try{
+    const lr=await fetch("./database.md",{cache:"no-store"});
+    if(lr.ok)local=await lr.text();
+  }catch(e){}
   if(local)render(local);
-  fetch(RAW).then(r=>{if(!r.ok)throw Error("load");return r.text()}).then(render).catch(()=>{
-    if(!local){c.textContent="Database intelijen belum tersedia. Hubungkan internet lalu jalankan pembaruan.";st.textContent="Database tidak tersedia"}
-  });
-})();;
+  try{
+    const r=await fetch(RAW,{cache:"no-store"});
+    if(!r.ok)throw Error("load");
+    const fresh=await r.text();
+    if(fresh&&fresh.length>1000)render(fresh);
+  }catch(e){
+    if(!local){
+      c.textContent="Database intelijen belum tersedia. Hubungkan internet lalu muat ulang halaman.";
+      st.textContent="Database tidak tersedia";
+    }
+  }
+})();
