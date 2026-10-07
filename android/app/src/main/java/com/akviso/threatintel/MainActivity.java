@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.webkit.WebViewClient;import android.webkit.WebChromeClient;import android.webkit.PermissionRequest;
 
 public class MainActivity extends Activity {
     private static final String PORTAL_URL =
@@ -18,6 +18,11 @@ public class MainActivity extends Activity {
 
         webView = new WebView(this);
         webView.setWebViewClient(new WebViewClient());
+        webView.setWebChromeClient(new WebChromeClient(){
+            @Override public void onPermissionRequest(PermissionRequest request){
+                runOnUiThread(()->request.grant(request.getResources()));
+            }
+        });
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
