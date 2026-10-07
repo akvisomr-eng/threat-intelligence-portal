@@ -1,0 +1,1 @@
+const {contextBridge}=require("electron");const fs=require("fs");const path=require("path");contextBridge.exposeInMainWorld("threatIntel",{getDatabase:()=>{try{return fs.readFileSync(path.join(__dirname,"database.md"),"utf8")}catch(e){return ""}}});
