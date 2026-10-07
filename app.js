@@ -17,9 +17,9 @@ function markdownToHtml(md){
   const flush=()=>{if(para.length){out.push("<p>"+terjemahkan(para.join(" "))+"</p>");para=[]}};
   for(const line of lines){
     const t=line.trim();
-    if(/^<table\b/i.test(t)||htmlBlock){flush();out.push(line);if(/<table\\b/i.test(t))htmlBlock=true;if(/<\\/table>/i.test(t))htmlBlock=false;continue}
-    if(/^#{1,6}\\s/.test(t)){flush();const m=t.match(/^(#{1,6})\\s+(.*)$/);out.push("<h"+m[1].length+">"+m[2]+"</h"+m[1].length+">");continue}
-    const lm=t.match(/^-\\s+(?:\\[([^\\]]+)\\]\\(([^)]+)\\)|(.+))$/);
+    if(/^<table\b/i.test(t)||htmlBlock){flush();out.push(line);if(/<table\b/i.test(t))htmlBlock=true;if(/<\/table>/i.test(t))htmlBlock=false;continue}
+    if(/^#{1,6}\s/.test(t)){flush();const m=t.match(/^(#{1,6})\s+(.*)$/);out.push("<h"+m[1].length+">"+m[2]+"</h"+m[1].length+">");continue}
+    const lm=t.match(/^-\s+(?:\[([^\]]+)\]\(([^)]+)\)|(.+))$/);
     if(lm){if(!list){out.push("<ul>");list=true}out.push(lm[2]?'<li><a href="'+lm[2]+'" target="_blank" rel="noopener">'+lm[1]+"</a></li>":"<li>"+lm[3]+"</li>");continue}
     if(list){out.push("</ul>");list=false}
     if(!t){flush();continue}
