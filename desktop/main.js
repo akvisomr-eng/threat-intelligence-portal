@@ -1,1 +1,27 @@
-const {app,BrowserWindow}=require("electron");const path=require("path");const fs=require("fs");const https=require("https");const RAW="https://raw.githubusercontent.com/hslatman/awesome-threat-intelligence/main/README.md";function sync(){return new Promise(r=>{https.get(RAW,{headers:{"User-Agent":"ThreatIntel-Portal"}},res=>{let d="";res.on("data",c=>d+=c);res.on("end",()=>{if(res.statusCode===200&&d.length>1000)fs.writeFileSync(path.join(__dirname,"database.md"),d,"utf8");r()})}).on("error",r)})}async function create(){await sync();const w=new BrowserWindow({width:1400,height:900,minWidth:900,minHeight:620,backgroundColor:"#070b12",webPreferences:{preload:path.join(__dirname,"preload.js"),contextIsolation:true,nodeIntegration:false}});w.loadFile(path.join(__dirname,"index.html"))}app.whenReady().then(create);app.on("window-all-closed",()=>{if(process.platform!=="darwin")app.quit()});
+const {app,BrowserWindow}=require("electron");
+const path=require("path");
+
+const PORTAL_URL="https://akvisomr-eng.github.io/threat-intelligence-portal/";
+
+function createWindow(){
+  const win=new BrowserWindow({
+    width:1400,
+    height:900,
+    minWidth:900,
+    minHeight:620,
+    backgroundColor:"#070b12",
+    title:"Threat Intelligence Portal — AURA Nusantara",
+    webPreferences:{
+      preload:path.join(__dirname,"preload.js"),
+      contextIsolation:true,
+      nodeIntegration:false,
+      sandbox:true
+    }
+  });
+
+  win.loadURL(PORTAL_URL,{extraHeaders:"Cache-Control: no-cache\n"});
+}
+
+app.whenReady().then(createWindow);
+app.on("window-all-closed",()=>{if(process.platform!=="darwin")app.quit();});
+app.on("activate",()=>{if(BrowserWindow.getAllWindows().length===0)createWindow();});
