@@ -1,7 +1,7 @@
 package com.akviso.threatintel;
 
 import android.app.Activity;
-import android.os.Bundle;
+import android.os.Bundle;import android.Manifest;import android.content.pm.PackageManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;import android.webkit.WebChromeClient;import android.webkit.PermissionRequest;
@@ -15,6 +15,7 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (android.os.Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 1001);
 
         webView = new WebView(this);
         webView.setWebViewClient(new WebViewClient());
