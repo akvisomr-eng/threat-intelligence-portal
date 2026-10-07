@@ -13,10 +13,9 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
-      - uses: gradle/gradle-build-action@v3
-        with:
-          arguments: :app:assembleDebug
-          build-root-directory: android
+      - name: Build APK
+        run: gradle :app:assembleDebug
+        working-directory: android
       - uses: actions/upload-artifact@v4
         with:
           name: ThreatIntel-Android-APK
