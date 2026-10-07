@@ -9,28 +9,40 @@ const F=[["cyber threat intelligence","intelijen ancaman siber"],["threat intell
 function terjemahkan(x){let r=x;Object.keys(T).forEach(k=>{r=r.split(k).join(T[k])});F.forEach(p=>{r=r.replace(new RegExp(p[0],"gi"),p[1])});return r}
 function tambah(t,k){const d=document.createElement("div");d.className="msg "+k;d.textContent=t;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight}
 const AURA_LANG="id-ID";
+let auraVoices=[];
+function muatSuara(){
+  if(!("speechSynthesis"in window))return;
+  auraVoices=window.speechSynthesis.getVoices()||[];
+}
+muatSuara();
+if("speechSynthesis"in window)window.speechSynthesis.addEventListener("voiceschanged",muatSuara);
 function suaraIndonesia(){
   if(!("speechSynthesis"in window))return null;
-  const voices=window.speechSynthesis.getVoices()||[];
+  const voices=auraVoices.length?auraVoices:(window.speechSynthesis.getVoices()||[]);
   return voices.find(v=>(v.lang||"").toLowerCase()==="id-id")||
          voices.find(v=>(v.lang||"").toLowerCase().startsWith("id"))||null;
 }
-function bicara(t){
+function tungguSuaraIndonesia(){
+  return new Promise(resolve=>{
+    const mulai=Date.now();
+    const cek=()=>{const v=suaraIndonesia();if(v||Date.now()-mulai>=1800){resolve(v);return}setTimeout(cek,120)};
+    cek();
+  });
+}
+async function bicara(t){
   if(!("speechSynthesis"in window))return;
+  const v=await tungguSuaraIndonesia();
+  if(!v){orb.classList.remove("active");cs.textContent="Voice Bahasa Indonesia tidak tersedia di perangkat ini";return}
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(t);
   u.lang=AURA_LANG;
-  const v=suaraIndonesia();
-  if(v)u.voice=v;
+  u.voice=v;
   u.rate=.96;
   u.pitch=1;
   u.onstart=()=>{orb.classList.add("active");cs.textContent="AURA sedang berbicara dalam Bahasa Indonesia..."};
   u.onend=()=>{orb.classList.remove("active");cs.textContent="Siap membantu"};
   u.onerror=()=>{orb.classList.remove("active");cs.textContent="Suara Indonesia tidak tersedia di perangkat ini"};
   window.speechSynthesis.speak(u);
-}
-if("speechSynthesis"in window){
-  window.speechSynthesis.onvoiceschanged=()=>{};
 }
 function jelaskan(t){t=t.replace(/\s+/g," ").trim();if(!t)return"";let n=t,d="";let p=t.indexOf(" - ");if(p>0){n=t.slice(0,p);d=t.slice(p+3)}else{p=t.indexOf(" — ");if(p>0){n=t.slice(0,p);d=t.slice(p+3)}}n=terjemahkan(n);d=terjemahkan(d);return d?"Ini "+n+". Fungsinya: "+d+". Jika ingin menggunakannya, tanyakan kepada saya cara penggunaan "+n+".":"Ini adalah "+n+", salah satu entri katalog Intelijen Ancaman. Saya dapat menjelaskan fungsi dan langkah awal penggunaannya."}
 function pasang(){c.querySelectorAll("li,h2,h3,h4,tr").forEach(el=>{const t=el.dataset.aura||el.innerText.trim();if(!t)return;el.title="Arahkan mouse di sini untuk mendengar penjelasan AURA";el.onmouseenter=()=>{clearTimeout(hoverTimer);hoverTimer=setTimeout(()=>{const chat=document.querySelector(".chat");if(chat&&chat.style.display!=="none"&&t!==lastSpoken){lastSpoken=t;bicara(t)}},500)};el.onmouseleave=()=>clearTimeout(hoverTimer)})}
