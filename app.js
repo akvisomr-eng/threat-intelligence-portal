@@ -29,7 +29,47 @@ function tungguSuaraIndonesia(){
     cek();
   });
 }
+const auraTtsCache=new Map();
+async function bicaraCloud(t){
+  const cfg=window.AURA_TTS_CONFIG||{};
+  if(!cfg.enabled||!cfg.apiKey)return false;
+  const text=String(t||"").trim();
+  if(!text)return false;
+  try{
+    let audioUrl=auraTtsCache.get(text);
+    if(!audioUrl){
+      const r=await fetch(cfg.endpoint+"?key="+encodeURIComponent(cfg.apiKey),{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          input:{text},
+          voice:{languageCode:cfg.languageCode||"id-ID",name:cfg.voice||"id-ID-Wavenet-B"},
+          audioConfig:{audioEncoding:"MP3",speakingRate:.96,pitch:0}
+        })
+      });
+      if(!r.ok)throw new Error("TTS_HTTP_"+r.status);
+      const data=await r.json();
+      if(!data.audioContent)throw new Error("TTS_AUDIO_EMPTY");
+      audioUrl=URL.createObjectURL(await (await fetch("data:audio/mpeg;base64,"+data.audioContent)).blob());
+      auraTtsCache.set(text,audioUrl);
+    }
+    const audio=new Audio(audioUrl);
+    orb.classList.add("active");
+    cs.textContent="AURA sedang berbicara dalam Bahasa Indonesia...";
+    await audio.play();
+    await new Promise(resolve=>{
+      audio.onended=resolve;
+      audio.onerror=resolve;
+    });
+    orb.classList.remove("active");cs.textContent="Siap membantu";
+    return true;
+  }catch(e){
+    console.warn("AURA cloud TTS fallback:",e);
+    return false;
+  }
+}
 async function bicara(t){
+  if(await bicaraCloud(t))return;
   if(window.AURAVoice&&typeof window.AURAVoice.speak==="function"){
     orb.classList.add("active");
     cs.textContent="AURA sedang berbicara dalam Bahasa Indonesia...";
