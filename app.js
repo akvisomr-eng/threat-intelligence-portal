@@ -30,6 +30,13 @@ function tungguSuaraIndonesia(){
   });
 }
 async function bicara(t){
+  if(window.AURAVoice&&typeof window.AURAVoice.speak==="function"){
+    orb.classList.add("active");
+    cs.textContent="AURA sedang berbicara dalam Bahasa Indonesia...";
+    window.AURAVoice.speak(t);
+    setTimeout(()=>{orb.classList.remove("active");cs.textContent="Siap membantu"},Math.max(1200,Math.min(12000,t.length*55)));
+    return;
+  }
   if(!("speechSynthesis"in window))return;
   const v=await tungguSuaraIndonesia();
   if(!v){orb.classList.remove("active");cs.textContent="Voice Bahasa Indonesia tidak tersedia di perangkat ini";return}
